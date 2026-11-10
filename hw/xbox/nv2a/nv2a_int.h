@@ -210,6 +210,17 @@ DEFINE_PROTO(prmdio)
 DEFINE_PROTO(user)
 #undef DEFINE_PROTO
 
+/*
+ * Mask applied to GPU-visible RAM addresses. Retail and debug consoles have at
+ * most 128 MiB, so this stays 0x07FFFFFF unless more RAM is configured (e.g.
+ * 256 MiB for consoles with the 256MB RAM mod), in which case it covers all of
+ * RAM.
+ */
+static inline hwaddr nv2a_vram_addr_mask(NV2AState *d)
+{
+    return MAX(memory_region_size(d->vram), 128 * MiB) - 1;
+}
+
 DMAObject nv_dma_load(NV2AState *d, hwaddr dma_obj_address);
 void *nv_dma_map(NV2AState *d, hwaddr dma_obj_address, hwaddr *len);
 

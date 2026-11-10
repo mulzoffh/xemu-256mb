@@ -3053,7 +3053,7 @@ void qemu_init(int argc, char **argv)
         fake_argv[fake_argc++] = strdup(flashrom_path);
     }
 
-    int mem = ((int)g_config.sys.mem_limit + 1) * 64;
+    int mem = 64 << (int)g_config.sys.mem_limit;
     fake_argv[fake_argc++] = strdup("-m");
     fake_argv[fake_argc++] = g_strdup_printf("%d", mem);
 

@@ -84,7 +84,7 @@ void *nv_dma_map(NV2AState *d, hwaddr dma_obj_address, hwaddr *len)
     /* TODO: Handle targets and classes properly */
     trace_nv2a_dma_map(dma_obj_address, dma.dma_class, dma.dma_target,
                        dma.address, dma.limit);
-    dma.address &= 0x07FFFFFF;
+    dma.address &= nv2a_vram_addr_mask(d);
 
     assert(dma.address < memory_region_size(d->vram));
     // assert(dma.address + dma.limit < memory_region_size(d->vram));
@@ -217,9 +217,12 @@ static void nv2a_init_memory(NV2AState *d, MemoryRegion *ram)
     /* xbox is UMA - vram *is* ram */
     d->vram = ram;
 
-     /* PCI exposed vram */
+     /* PCI exposed vram. The BIOS places this BAR at 0xF0000000 and the AGP
+      * bridge prefetchable window ends at 0xF7FFFFFF, so cap the aperture at
+      * 128 MiB to keep it clear of the NV2A MMIO BAR at 0xFD000000 when more
+      * RAM is configured. */
     memory_region_init_alias(&d->vram_pci, OBJECT(d), "nv2a-vram-pci", d->vram,
-                             0, memory_region_size(d->vram));
+                             0, MIN(memory_region_size(d->vram), 128 * MiB));
     pci_register_bar(PCI_DEVICE(d), 1, PCI_BASE_ADDRESS_MEM_PREFETCH, &d->vram_pci);
 
 
